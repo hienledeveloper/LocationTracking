@@ -11,9 +11,11 @@ import androidx.fragment.app.Fragment
 /**
  * Created By Ben on 7/9/20
  */
-open class BaseFragment<_ViewDataBinding : ViewDataBinding>(private val resLayoutId: Int) : Fragment() {
+abstract class BaseFragment<_ViewDataBinding : ViewDataBinding> : Fragment() {
 
     private lateinit var binding: _ViewDataBinding
+
+    abstract fun getLayoutResourceId(): Int
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -22,7 +24,7 @@ open class BaseFragment<_ViewDataBinding : ViewDataBinding>(private val resLayou
     ): View? {
         binding = DataBindingUtil.inflate<_ViewDataBinding>(
             inflater,
-            resLayoutId,
+            getLayoutResourceId(),
             container,
             false
         )

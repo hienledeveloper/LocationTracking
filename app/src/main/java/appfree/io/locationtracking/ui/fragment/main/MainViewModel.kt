@@ -1,4 +1,4 @@
-package appfree.io.locationtracking.ui.fragment
+package appfree.io.locationtracking.ui.fragment.main
 
 import android.app.Activity
 import androidx.lifecycle.MutableLiveData

@@ -13,31 +13,29 @@ import androidx.fragment.app.FragmentActivity
  */
 class PermissionManager {
 
-    fun checkPermissionHasGranted(context: Context, request: PermissionRequest): Boolean {
+    fun checkPermissionHasGranted(context: Context?, request: PermissionRequest): Boolean {
         var isPermissionGranted = false
-        PermissionEvent(request).listPermissions.forEach { permissionString ->
-            if (ActivityCompat.checkSelfPermission(
-                    context,
-                    permissionString
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                isPermissionGranted = true
+        if (context!=null) {
+            PermissionEvent(request).listPermissions.forEach { permissionString ->
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        permissionString
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    isPermissionGranted = true
+                }
             }
         }
         return isPermissionGranted
     }
 
-    private fun requestPermission(activity: Activity?, request: PermissionRequest) {
+    fun requestPermission(activity: Activity?, request: PermissionRequest) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             activity?.requestPermissions(
                 PermissionEvent(request).listPermissions,
                 request.code
             )
         }
-    }
-
-    fun requestPermission(activity: FragmentActivity?, request: PermissionRequest) {
-        requestPermission(activity as Activity, request)
     }
 
     fun onRequestPermissionsResult(
