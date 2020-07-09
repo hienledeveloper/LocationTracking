@@ -49,4 +49,6 @@ dependencies {
     implementation "org.koin:koin-androidx-viewmodel:$koin_version"
     testImplementation "org.koin:koin-test:$koin_version"
 
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+
 }
