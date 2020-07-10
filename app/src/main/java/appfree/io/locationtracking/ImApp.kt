@@ -2,8 +2,10 @@ package appfree.io.locationtracking
 
 import android.app.Application
 import appfree.io.locationtracking.di.managerInjection
+import appfree.io.locationtracking.di.roomInjection
 import appfree.io.locationtracking.di.viewModelInjection
 import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
 /**
@@ -14,10 +16,12 @@ class ImApp : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
-            androidContext(applicationContext)
+            androidLogger()
+            androidContext(this@ImApp)
             modules(
                 managerInjection,
-                viewModelInjection
+                viewModelInjection,
+                roomInjection
             )
         }
     }

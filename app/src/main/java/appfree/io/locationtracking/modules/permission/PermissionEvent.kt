@@ -10,7 +10,8 @@ class PermissionEvent(private val permissionRequest: PermissionRequest) {
     get() = when (permissionRequest.code) {
         PermissionRequest.LOCATION_PERMISSION.code -> arrayOf(
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
         )
         else -> arrayOf()
     }
