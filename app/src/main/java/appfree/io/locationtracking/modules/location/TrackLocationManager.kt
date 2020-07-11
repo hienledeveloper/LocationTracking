@@ -1,6 +1,7 @@
 package appfree.io.locationtracking.modules.location
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Looper
@@ -8,19 +9,25 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import appfree.io.locationtracking.modules.room.dao.TrackLocationDao
+import appfree.io.locationtracking.modules.sharepreference.SharedPreferencesManager
 import com.google.android.gms.location.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 /**
  * Created By Ben on 7/10/20
  */
-class TrackLocationManager(private val dao: TrackLocationDao) {
+class TrackLocationManager(
+    private val dao: TrackLocationDao,
+    private val sharedPreferencesManager: SharedPreferencesManager
+) {
 
     private var mLocationRequest: LocationRequest? = null
     private var mFusedLocationClient: FusedLocationProviderClient? = null
+    var lastLocationListener: ((TrackLocation) -> Unit)? = null
 
     init {
         mLocationRequest = LocationRequest.create()
@@ -62,8 +69,14 @@ class TrackLocationManager(private val dao: TrackLocationDao) {
             locationResult?.lastLocation?.let { location ->
                 Log.i("location", "latitude - ${location.latitude}")
                 Log.i("location", "longitude - ${location.longitude}")
+                val trackLocation = TrackLocation(
+                    latitude = location.latitude,
+                    longitude = location.longitude,
+                    sessionId = sharedPreferencesManager.currentSessionId
+                )
+                lastLocationListener?.invoke(trackLocation)
                 GlobalScope.launch {
-                    saveTrackLocation(TrackLocation(latitude = location.latitude, longitude = location.longitude))
+                    saveTrackLocation(trackLocation)
                 }
             }
         }
@@ -84,5 +97,8 @@ class TrackLocationManager(private val dao: TrackLocationDao) {
     }
 
     fun getAllTrackLocations(): LiveData<List<TrackLocation>> = dao.getAll()
+
+    fun getAllTrackLocationsByCurrentSession(): LiveData<List<TrackLocation>> =
+        dao.getAllBySessionId(sharedPreferencesManager.currentSessionId)
 
 }

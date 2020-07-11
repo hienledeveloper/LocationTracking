@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">LocationTracking</string>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyCBToj9rxM87Ol4iqH2nSlOubdgBAfDLMk</string>
+    <string name="notification_title">notification_title</string>
+    <string name="notification_message">notification_title</string>
+    <string name="ticker_text">ticker_text</string>
 </resources>

@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment
  */
 abstract class BaseFragment<_ViewDataBinding : ViewDataBinding> : Fragment() {
 
-    private lateinit var binding: _ViewDataBinding
+    lateinit var binding: _ViewDataBinding
 
     abstract fun getLayoutResourceId(): Int
 

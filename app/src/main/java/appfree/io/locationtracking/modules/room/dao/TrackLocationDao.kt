@@ -1,5 +1,6 @@
 package appfree.io.locationtracking.modules.room.dao
 
+import android.view.contentcapture.ContentCaptureSessionId
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
@@ -17,5 +18,8 @@ interface TrackLocationDao {
 
     @Query("SELECT * FROM tbl_track_location")
     fun getAll(): LiveData<List<TrackLocation>>
+
+    @Query("SELECT * FROM tbl_track_location WHERE sessionId == :sSessionId")
+    fun getAllBySessionId(sSessionId: String?): LiveData<List<TrackLocation>>
 
 }

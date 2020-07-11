@@ -14,4 +14,5 @@ val roomInjection = module {
             .fallbackToDestructiveMigration().build()
     }
     factory { get<AppDatabase>().trackLocationDao() }
+    factory { get<AppDatabase>().trackSessionDao() }
 }
