@@ -75,7 +75,6 @@ class RecordLocationService : Service() {
     }
 
     override fun stopService(name: Intent?): Boolean {
-        locationManager.removeLocationUpdates()
         return super.stopService(name)
     }
 }

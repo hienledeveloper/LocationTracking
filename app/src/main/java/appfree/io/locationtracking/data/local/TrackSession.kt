@@ -10,6 +10,6 @@ import androidx.room.PrimaryKey
 data class TrackSession (
 
     @PrimaryKey
-    val uid: String?,
+    val uid: String,
     val distance: Float
 )

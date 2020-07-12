@@ -24,8 +24,6 @@ class TrackMapManager {
 
     private lateinit var mMap: GoogleMap
     private var currentLocation: TrackLocation? = null
-    private var mTempLatitude = 0.0
-    private var mTempLongitude = 0.0
 
     fun setUp(context: Context?, googleMap: GoogleMap) {
         if (context == null) return
@@ -58,11 +56,7 @@ class TrackMapManager {
         mMap.clear()
         mMap.addPolyline(PolylineOptions().apply {
             list.forEach { location ->
-                if (abs(mTempLatitude - location.latitude) > 0.00005 || abs(mTempLongitude - location.longitude) > 0.00005) {
-                    mTempLatitude = location.latitude
-                    mTempLongitude = location.longitude
-                    this.add(LatLng(location.latitude, location.longitude))
-                }
+                this.add(LatLng(location.latitude, location.longitude))
             }
         })
     }
@@ -83,7 +77,7 @@ class TrackMapManager {
 
     fun screenShotMap(context: Context?, sId: String?) {
         mMap.snapshot { bitmap ->
-            File(context?.cacheDir, "$sId.png").writeBitmap(bitmap, Bitmap.CompressFormat.PNG, 85)
+            File(context?.externalCacheDir, "$sId.png").writeBitmap(bitmap, Bitmap.CompressFormat.PNG, 85)
         }
         Log.i("tagstorge", "${context?.cacheDir?.absolutePath}/$sId.png")
     }

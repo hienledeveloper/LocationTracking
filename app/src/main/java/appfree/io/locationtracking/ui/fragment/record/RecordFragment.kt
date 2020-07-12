@@ -75,7 +75,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
         } else {
 
             // new & prepare session
-            sharedPreferencesManager.currentSessionId = UUID.randomUUID().toString()
+            sharedPreferencesManager.currentSessionId = null
             binding.state = RecordState.RECORD_STOP
         }
 
@@ -91,13 +91,16 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         trackMapManager.setUp(context, googleMap)
+        trackLocationManager.registerLocationUpdates(context)
+
         // Add a marker in Sydney and move the camera
         trackLocationManager.lastLocationListener = { trackLocation ->
             trackMapManager.moveCameraTo(trackLocation)
         }
         trackLocationManager.getAllTrackLocationsByCurrentSession().observe(this, Observer { list ->
             if (list.isNotEmpty()) {
-                fTotalDistance = trackMapManager.approximateDistanceOfMeter(list.first(), list.last()).distance
+                fTotalDistance =
+                    trackMapManager.approximateDistanceOfMeter(list.first(), list.last()).distance
                 trackMapManager.drawPolyline(list)
                 list.last().let { currentLocation ->
                     mPreviousLocation?.let { fromLocation ->
@@ -113,9 +116,13 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
     }
 
     private fun viewModelObserve() {
-        recordViewModel.notifyActionClick.addOnPropertyChangedCallback(object: Observable.OnPropertyChangedCallback() {
+        recordViewModel.notifyActionClick.addOnPropertyChangedCallback(object :
+            Observable.OnPropertyChangedCallback() {
             override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
                 when (recordViewModel.notifyActionClick.get()) {
+                    RecordState.RECORD_CANCEL -> {
+                        activity?.onBackPressed()
+                    }
                     RecordState.RECORD_START -> {
                         delayChangeStateAction(RecordState.RECORD_START)
                         startRecord()
@@ -145,9 +152,11 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
         }, 500)
     }
 
-    private fun hasRecording() = ServiceUtil.hasServiceRunning(context, RecordLocationService::class.java)
+    private fun hasRecording() =
+        ServiceUtil.hasServiceRunning(context, RecordLocationService::class.java)
 
     private fun startRecord() {
+        sharedPreferencesManager.currentSessionId = UUID.randomUUID().toString()
         NavigatorUtil.startForegroundService(context, RecordLocationService::class.java)
     }
 
@@ -156,9 +165,13 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
     }
 
     private fun stopRecord() {
-        trackMapManager.screenShotMap(context, sharedPreferencesManager.currentSessionId)
+
+        sharedPreferencesManager.currentSessionId?.let { sId ->
+            trackMapManager.screenShotMap(context, sId)
+            recordViewModel.saveSession(TrackSession(sId, fTotalDistance))
+        }
         NavigatorUtil.stopService(context, RecordLocationService::class.java)
-        recordViewModel.saveSession(TrackSession(sharedPreferencesManager.currentSessionId, fTotalDistance))
+
     }
 
 

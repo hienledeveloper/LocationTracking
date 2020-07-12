@@ -14,7 +14,7 @@ import appfree.io.locationtracking.data.local.TrackSession
 interface TrackSessionDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(session: TrackSession)
+    suspend fun insert(session: TrackSession)
 
     @Query("SELECT * FROM tbl_track_session")
     fun getAll(): LiveData<List<TrackSession>>

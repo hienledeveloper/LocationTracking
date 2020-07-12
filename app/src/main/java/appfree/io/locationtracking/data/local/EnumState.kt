@@ -7,5 +7,6 @@ enum class RecordState {
     RECORD_START,
     RECORD_PAUSE,
     RECORD_RESTART,
-    RECORD_STOP
+    RECORD_STOP,
+    RECORD_CANCEL
 }

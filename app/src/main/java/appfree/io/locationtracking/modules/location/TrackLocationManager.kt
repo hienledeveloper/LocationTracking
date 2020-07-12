@@ -67,8 +67,6 @@ class TrackLocationManager(
         override fun onLocationResult(locationResult: LocationResult?) {
             super.onLocationResult(locationResult)
             locationResult?.lastLocation?.let { location ->
-                Log.i("location", "latitude - ${location.latitude}")
-                Log.i("location", "longitude - ${location.longitude}")
                 val trackLocation = TrackLocation(
                     latitude = location.latitude,
                     longitude = location.longitude,
@@ -92,7 +90,9 @@ class TrackLocationManager(
 
     suspend fun saveTrackLocation(trackLocation: TrackLocation) {
         withContext(Dispatchers.IO) {
-            dao.insert(trackLocation)
+            if (!trackLocation.sessionId.isNullOrEmpty()) {
+                dao.insert(trackLocation)
+            }
         }
     }
 
