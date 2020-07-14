@@ -29,6 +29,7 @@ class RecordLocationService : Service() {
     private val binder: LocationServiceBinder = LocationServiceBinder(this)
     private val locationManager: TrackLocationManager by inject()
     private val trackLocationDao: TrackLocationDao by inject()
+    private var hasStopService = false
 
     override fun onBind(intent: Intent?): IBinder? {
         return binder
@@ -40,21 +41,23 @@ class RecordLocationService : Service() {
         intent?.getStringExtra(RECORD_SESSION_ID)?.let { sessionId ->
             tracking(sessionId)
         }
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     private fun tracking(sessionId: String) {
         locationManager.registerLocationUpdates(applicationContext)
         locationManager.lastLocationListener = { location ->
-            runBlocking {
-                withContext(Dispatchers.IO) {
-                    trackLocationDao.insert(
-                        TrackLocation(
-                            latitude = location.latitude,
-                            longitude = location.longitude,
-                            sessionId = sessionId,
-                            updatedAt = System.currentTimeMillis()
-                        ))
+            if (hasStopService) {
+                runBlocking {
+                    withContext(Dispatchers.IO) {
+                        trackLocationDao.insert(
+                            TrackLocation(
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                sessionId = sessionId,
+                                updatedAt = System.currentTimeMillis()
+                            ))
+                    }
                 }
             }
         }
@@ -87,12 +90,14 @@ class RecordLocationService : Service() {
             .setSmallIcon(android.R.drawable.ic_menu_directions)
             .setContentIntent(pendingIntent)
             .setWhen(System.currentTimeMillis())
+            .setAutoCancel(false)
             .setTicker(getText(R.string.ticker_text))
             .build()
     }
 
     override fun stopService(name: Intent?): Boolean {
         locationManager.removeLocationUpdates()
+        hasStopService = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             stopForeground(true)
         }

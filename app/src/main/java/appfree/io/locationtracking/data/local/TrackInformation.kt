@@ -10,12 +10,12 @@ data class TrackInformation (
     var duration: Long = 0L
 ) {
     val distanceKm: String
-    get() = "${distance} km"
+    get() = "${distance} m"
 
     val speedInKm: String
     get() {
         if (duration > 0 && distance > 0) {
-            return "${distance / (duration / 1000)} km/h"
+            return "${round(distance / (duration / 1000))} m/s"
         }
         return "0"
     }
@@ -23,7 +23,7 @@ data class TrackInformation (
     val durationSecond: String
     get() {
         if (duration > 0) {
-            return "${duration} s"
+            return "${(duration/1000).toInt()} s"
         }
         return "0s"
     }

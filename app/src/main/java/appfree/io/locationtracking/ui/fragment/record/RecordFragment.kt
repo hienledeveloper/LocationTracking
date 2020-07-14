@@ -48,6 +48,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
     private var mPreviousLocation: TrackLocation? = null
     private var fTotalDistance: Float = 0f
     private var hasFindMyLocation = false
+    private var trackingTime = 0L
 
     override fun getLayoutResourceId(): Int = R.layout.fragment_main
 
@@ -129,6 +130,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
             recordViewModel.getAllTrackLocationsByCurrentSession(sId)
                 .observe(this, Observer { list ->
                     if (list.isNotEmpty()) {
+                        trackingTime = list.first().updatedAt
                         fTotalDistance =
                             trackMapManager.approximateDistanceOfMeter(list.first(), list.last())
                         trackMapManager.drawPolyline(list)
@@ -138,7 +140,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
                                     trackMapManager.approximateDistanceOfMeter(
                                         fromLocation,
                                         list.last()
-                                    ), currentLocation.updatedAt
+                                    ), trackingTime
                                 )
                             }
                             mPreviousLocation = currentLocation
@@ -223,7 +225,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
             trackInformation.distance = distance
         }
         if (timeStart != null) {
-            trackInformation.duration = abs(System.currentTimeMillis() - timeStart)
+            trackInformation.duration = System.currentTimeMillis() - timeStart
         }
         binding.data = trackInformation
     }
