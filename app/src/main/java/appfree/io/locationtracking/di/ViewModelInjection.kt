@@ -12,7 +12,7 @@ import org.koin.dsl.module
  */
 val viewModelInjection = module {
     viewModel { MainViewModel() }
-    viewModel { RecordViewModel(get()) }
+    viewModel { RecordViewModel(get(),get()) }
     viewModel { PermissionViewModel(get()) }
     viewModel { HistoryViewModel(get()) }
 }

@@ -6,7 +6,14 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
 import appfree.io.locationtracking.R
+import appfree.io.locationtracking.data.local.TrackSession
+import appfree.io.locationtracking.modules.room.dao.TrackLocationDao
+import appfree.io.locationtracking.modules.room.dao.TrackSessionDao
+import appfree.io.locationtracking.modules.sharepreference.SharedPreferencesManager
 import appfree.io.locationtracking.ui.activity.main.MainActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
 /**
@@ -15,28 +22,47 @@ import org.koin.android.ext.android.inject
 class RecordLocationService : Service() {
 
     companion object {
+        const val RECORD_SESSION_ID = "record_session_id"
         private const val RECORD_NOTIFICATION_CHANNEL_ID = "notification_track_me"
     }
 
     private val binder: LocationServiceBinder = LocationServiceBinder(this)
     private val locationManager: TrackLocationManager by inject()
+    private val trackLocationDao: TrackLocationDao by inject()
 
-    override fun onBind(intent: Intent?): IBinder? = binder
+    override fun onBind(intent: Intent?): IBinder? {
+        return binder
+    }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onCreate() {
-        super.onCreate()
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        intent?.getStringExtra(RECORD_SESSION_ID)?.let { sessionId ->
+            tracking(sessionId)
+        }
+        return START_NOT_STICKY
+    }
+
+    private fun tracking(sessionId: String) {
         locationManager.registerLocationUpdates(applicationContext)
+        locationManager.lastLocationListener = { location ->
+            runBlocking {
+                withContext(Dispatchers.IO) {
+                    trackLocationDao.insert(
+                        TrackLocation(
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            sessionId = sessionId,
+                            updatedAt = System.currentTimeMillis()
+                        ))
+                }
+            }
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(
                 132131, getNotification()
             )
         }
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
-        return START_NOT_STICKY
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -58,23 +84,18 @@ class RecordLocationService : Service() {
         return Notification.Builder(this, RECORD_NOTIFICATION_CHANNEL_ID)
             .setContentTitle(getText(R.string.notification_title))
             .setContentText(getText(R.string.notification_message))
-            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setSmallIcon(android.R.drawable.ic_menu_directions)
             .setContentIntent(pendingIntent)
+            .setWhen(System.currentTimeMillis())
             .setTicker(getText(R.string.ticker_text))
             .build()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun stopService(name: Intent?): Boolean {
         locationManager.removeLocationUpdates()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getSystemService(NotificationManager::class.java).apply {
-                this?.deleteNotificationChannel(RECORD_NOTIFICATION_CHANNEL_ID)
-            }
+            stopForeground(true)
         }
-    }
-
-    override fun stopService(name: Intent?): Boolean {
         return super.stopService(name)
     }
 }

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="data"
+            type="appfree.io.locationtracking.data.local.TrackInformation" />
+    </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -13,6 +20,12 @@
             android:layout_height="240dp"
             android:contentDescription="@null"
             android:scaleType="centerCrop" />
+
+        <include
+            android:layout_width="match_parent"
+            android:layout_height="?actionBarSize"
+            layout="@layout/view_tracking_info"
+            app:data="@{data}"/>
 
     </LinearLayout>
 </layout>

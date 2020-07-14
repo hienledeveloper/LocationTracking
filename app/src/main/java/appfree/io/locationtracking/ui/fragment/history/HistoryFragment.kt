@@ -1,10 +1,7 @@
 package appfree.io.locationtracking.ui.fragment.history
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.Observer
 import appfree.io.locationtracking.R
 import appfree.io.locationtracking.base.BaseFragment
@@ -14,7 +11,6 @@ import appfree.io.locationtracking.ui.activity.main.MainViewModel
 import appfree.io.locationtracking.view.adapters.RecordAdapter
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.io.File
 
 /**
  * Created By Ben on 7/11/20
@@ -35,13 +31,20 @@ class HistoryFragment : BaseFragment<FragmentHistoryBinding>() {
             setHasFixedSize(true)
             adapter = recordAdapter
         }
-        historyViewModel.getAll().observe(viewLifecycleOwner, Observer { list ->
+        historyViewModel.sessionObserves.observe(viewLifecycleOwner, Observer { list ->
             recordAdapter.listSessions.clear()
             recordAdapter.listSessions.addAll(list)
             recordAdapter.notifyDataSetChanged()
         })
+        historyViewModel.getAll()
         binding.btnRecord.setOnClickListener {
             mainViewModel.notifyNavigation.postValue(DestinationEvent.RECORD)
         }
+
+    }
+
+    override fun onFragmentResume() {
+        super.onFragmentResume()
+        historyViewModel.getAll()
     }
 }

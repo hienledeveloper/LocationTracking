@@ -1,7 +1,5 @@
 package appfree.io.locationtracking.modules.location
 
-import android.os.SystemClock
-import android.view.contentcapture.ContentCaptureSessionId
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey

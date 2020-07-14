@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import appfree.io.locationtracking.data.local.TrackInformation
 import appfree.io.locationtracking.modules.location.TrackLocation
 import appfree.io.locationtracking.view.extensions.writeBitmap
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -15,7 +14,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
 import java.io.File
-import kotlin.math.abs
 
 /**
  * Created By Ben on 7/10/20
@@ -23,7 +21,7 @@ import kotlin.math.abs
 class TrackMapManager {
 
     private lateinit var mMap: GoogleMap
-    private var currentLocation: TrackLocation? = null
+    private var currentLocation: Location? = null
 
     fun setUp(context: Context?, googleMap: GoogleMap) {
         if (context == null) return
@@ -44,12 +42,12 @@ class TrackMapManager {
 
     }
 
-    fun moveCameraTo(trackLocation: TrackLocation) {
+    fun moveCameraTo(location: Location) {
         if (currentLocation == null) {
-            val sydney = LatLng(trackLocation.latitude, trackLocation.longitude)
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+            val myLocation = LatLng(location.latitude, location.longitude)
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation))
         }
-        currentLocation = trackLocation
+        currentLocation = location
     }
 
     fun drawPolyline(list: List<TrackLocation>) {
@@ -61,25 +59,20 @@ class TrackMapManager {
         })
     }
 
-    fun approximateDistanceOfMeter(fromLocation: TrackLocation, toLocation: TrackLocation): TrackInformation {
+    fun approximateDistanceOfMeter(fromLocation: TrackLocation, toLocation: TrackLocation): Float {
         val from = Location("LocationA")
         from.latitude = fromLocation.latitude
         from.longitude = fromLocation.longitude
         val destination = Location("LocationB")
         destination.latitude = toLocation.latitude
         destination.longitude = toLocation.longitude
-        return TrackInformation(
-            from.distanceTo(
-                destination
-            )
-        )
+        return from.distanceTo(destination)
     }
 
     fun screenShotMap(context: Context?, sId: String?) {
         mMap.snapshot { bitmap ->
             File(context?.externalCacheDir, "$sId.png").writeBitmap(bitmap, Bitmap.CompressFormat.PNG, 85)
         }
-        Log.i("tagstorge", "${context?.cacheDir?.absolutePath}/$sId.png")
     }
 
 }

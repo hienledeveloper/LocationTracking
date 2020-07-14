@@ -24,6 +24,7 @@ abstract class BaseActivity<_ViewDataBinding : ViewDataBinding> : AppCompatActiv
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView<_ViewDataBinding>(this, getLayoutResourceId())
         binding.lifecycleOwner = this
+
         onPermissionViewModelObserve()
     }
 

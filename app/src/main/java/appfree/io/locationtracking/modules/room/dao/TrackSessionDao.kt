@@ -1,6 +1,5 @@
 package appfree.io.locationtracking.modules.room.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -16,7 +15,7 @@ interface TrackSessionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(session: TrackSession)
 
-    @Query("SELECT * FROM tbl_track_session")
-    fun getAll(): LiveData<List<TrackSession>>
+    @Query("SELECT * FROM tbl_track_session ORDER BY created_at DESC")
+    suspend fun getAll(): List<TrackSession>
 
 }

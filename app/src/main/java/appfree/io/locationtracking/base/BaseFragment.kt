@@ -39,4 +39,6 @@ abstract class BaseFragment<_ViewDataBinding : ViewDataBinding> : Fragment() {
 
     open fun onViewModelObserves() {}
 
+    open fun onFragmentResume() {}
+
 }

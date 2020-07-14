@@ -1,6 +1,5 @@
 package appfree.io.locationtracking.modules.room.dao
 
-import android.view.contentcapture.ContentCaptureSessionId
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert

@@ -1,12 +1,10 @@
 package appfree.io.locationtracking.modules.permission
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
-import androidx.fragment.app.FragmentActivity
 
 /**
  * Created By Ben on 7/9/20

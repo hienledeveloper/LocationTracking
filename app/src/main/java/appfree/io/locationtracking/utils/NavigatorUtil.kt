@@ -1,29 +1,35 @@
 package appfree.io.locationtracking.utils
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 
 /**
  * Created By Ben on 7/10/20
  */
 object NavigatorUtil {
 
-    fun <T> startForegroundService(context: Context?, clazz: Class<T>) {
+    fun <T> startForegroundService(context: Context?, clazz: Class<T>, bundle: Bundle?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context?.startForegroundService(
                 Intent(
                     context,
                     clazz
-                )
+                ).apply {
+                    if (bundle!=null)
+                        this.putExtras(bundle)
+                }
             )
         } else {
             context?.startService(
                 Intent(
                     context,
                     clazz
-                )
+                ).apply {
+                    if (bundle!=null)
+                        this.putExtras(bundle)
+                }
             )
         }
     }

@@ -4,4 +4,6 @@
     <string name="notification_title">notification_title</string>
     <string name="notification_message">notification_title</string>
     <string name="ticker_text">ticker_text</string>
+    <string name="distance">Distance</string>
+    <string name="speed">Speed</string>
 </resources>

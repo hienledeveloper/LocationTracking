@@ -1,5 +1,6 @@
 package appfree.io.locationtracking.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,5 +12,8 @@ data class TrackSession (
 
     @PrimaryKey
     val uid: String,
-    val distance: Float
+    val distance: Float,
+    val duration: Long,
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long = System.currentTimeMillis()
 )

@@ -4,11 +4,13 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import androidx.core.os.bundleOf
 import androidx.databinding.Observable
 import androidx.lifecycle.Observer
 import appfree.io.locationtracking.R
 import appfree.io.locationtracking.base.BaseFragment
 import appfree.io.locationtracking.data.local.RecordState
+import appfree.io.locationtracking.data.local.TrackInformation
 import appfree.io.locationtracking.data.local.TrackSession
 import appfree.io.locationtracking.databinding.FragmentMainBinding
 import appfree.io.locationtracking.modules.location.RecordLocationService
@@ -18,6 +20,7 @@ import appfree.io.locationtracking.modules.map.TrackMapManager
 import appfree.io.locationtracking.modules.permission.PermissionRequest
 import appfree.io.locationtracking.modules.permission.PermissionViewModel
 import appfree.io.locationtracking.modules.sharepreference.SharedPreferencesManager
+import appfree.io.locationtracking.ui.activity.main.MainViewModel
 import appfree.io.locationtracking.utils.NavigatorUtil
 import appfree.io.locationtracking.utils.ServiceUtil
 import com.google.android.gms.maps.GoogleMap
@@ -27,6 +30,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
+import kotlin.math.abs
 
 /**
  * Created By Ben on 7/9/20
@@ -34,13 +38,16 @@ import java.util.*
 class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
 
     private val permissionViewModel: PermissionViewModel by sharedViewModel()
+    private val mainViewModel: MainViewModel by sharedViewModel()
     private val trackLocationManager: TrackLocationManager by inject()
     private val trackMapManager: TrackMapManager by inject()
     private val sharedPreferencesManager: SharedPreferencesManager by inject()
     private val recordViewModel: RecordViewModel by viewModel()
+    private val trackInformation = TrackInformation()
 
     private var mPreviousLocation: TrackLocation? = null
     private var fTotalDistance: Float = 0f
+    private var hasFindMyLocation = false
 
     override fun getLayoutResourceId(): Int = R.layout.fragment_main
 
@@ -59,10 +66,12 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
                 permissionReady()
             }
         })
+        mainViewModel.notifyBackPressed.observe(viewLifecycleOwner, Observer {
+            recordViewModel.onClickRecordStateChanged(RecordState.RECORD_CANCEL)
+        })
     }
 
     private fun permissionReady() {
-        setUpView()
         loadGoogleMap()
     }
 
@@ -71,6 +80,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
         if (hasRecording()) {
 
             // state recording
+            NavigatorUtil.stopService(context, RecordLocationService::class.java)
             binding.state = RecordState.RECORD_START
         } else {
 
@@ -93,26 +103,49 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
         trackMapManager.setUp(context, googleMap)
         trackLocationManager.registerLocationUpdates(context)
 
-        // Add a marker in Sydney and move the camera
-        trackLocationManager.lastLocationListener = { trackLocation ->
-            trackMapManager.moveCameraTo(trackLocation)
-        }
-        trackLocationManager.getAllTrackLocationsByCurrentSession().observe(this, Observer { list ->
-            if (list.isNotEmpty()) {
-                fTotalDistance =
-                    trackMapManager.approximateDistanceOfMeter(list.first(), list.last()).distance
-                trackMapManager.drawPolyline(list)
-                list.last().let { currentLocation ->
-                    mPreviousLocation?.let { fromLocation ->
-                        trackMapManager.approximateDistanceOfMeter(fromLocation, list.last())
-                            .let { trackInformation ->
-                                binding.data = trackInformation
-                            }
-                    }
-                    mPreviousLocation = currentLocation
-                }
+        trackLocationManager.lastLocationListener = { location ->
+            if (!hasFindMyLocation) {
+                hasFindMyLocation = true
+                trackMapManager.moveCameraTo(location)
             }
-        })
+            if (binding.state == RecordState.RECORD_START || binding.state == RecordState.RECORD_RESTART) {
+                sharedPreferencesManager.currentSessionId?.let { sId ->
+                    recordViewModel.saveTrackLocation(
+                        TrackLocation(
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            sessionId = sId,
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
+
+            }
+        }
+    }
+
+    private fun requestDataLocation() {
+        sharedPreferencesManager.currentSessionId?.let { sId ->
+            recordViewModel.getAllTrackLocationsByCurrentSession(sId)
+                .observe(this, Observer { list ->
+                    if (list.isNotEmpty()) {
+                        fTotalDistance =
+                            trackMapManager.approximateDistanceOfMeter(list.first(), list.last())
+                        trackMapManager.drawPolyline(list)
+                        list.last().let { currentLocation ->
+                            mPreviousLocation?.let { fromLocation ->
+                                trackInfo(
+                                    trackMapManager.approximateDistanceOfMeter(
+                                        fromLocation,
+                                        list.last()
+                                    ), currentLocation.updatedAt
+                                )
+                            }
+                            mPreviousLocation = currentLocation
+                        }
+                    }
+                })
+        }
     }
 
     private fun viewModelObserve() {
@@ -121,7 +154,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
             override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
                 when (recordViewModel.notifyActionClick.get()) {
                     RecordState.RECORD_CANCEL -> {
-                        activity?.onBackPressed()
+                        activity?.supportFragmentManager?.popBackStack()
                     }
                     RecordState.RECORD_START -> {
                         delayChangeStateAction(RecordState.RECORD_START)
@@ -133,7 +166,7 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
                     }
                     RecordState.RECORD_RESTART -> {
                         delayChangeStateAction(RecordState.RECORD_START)
-                        startRecord()
+                        reStart()
                     }
                     RecordState.RECORD_STOP -> {
                         delayChangeStateAction(RecordState.RECORD_STOP)
@@ -155,24 +188,63 @@ class RecordFragment : BaseFragment<FragmentMainBinding>(), OnMapReadyCallback {
     private fun hasRecording() =
         ServiceUtil.hasServiceRunning(context, RecordLocationService::class.java)
 
+    private fun reStart() {
+        trackLocationManager.registerLocationUpdates(context)
+    }
+
     private fun startRecord() {
         sharedPreferencesManager.currentSessionId = UUID.randomUUID().toString()
-        NavigatorUtil.startForegroundService(context, RecordLocationService::class.java)
+        requestDataLocation()
     }
 
     private fun pauseRecord() {
         NavigatorUtil.stopService(context, RecordLocationService::class.java)
+        trackLocationManager.removeLocationUpdates()
     }
 
     private fun stopRecord() {
 
         sharedPreferencesManager.currentSessionId?.let { sId ->
             trackMapManager.screenShotMap(context, sId)
-            recordViewModel.saveSession(TrackSession(sId, fTotalDistance))
+            recordViewModel.saveSession(
+                TrackSession(
+                    sId,
+                    trackInformation.distance,
+                    trackInformation.duration
+                )
+            )
         }
         NavigatorUtil.stopService(context, RecordLocationService::class.java)
 
     }
 
+    private fun trackInfo(distance: Float?, timeStart: Long?) {
+        if (distance != null) {
+            trackInformation.distance = distance
+        }
+        if (timeStart != null) {
+            trackInformation.duration = abs(System.currentTimeMillis() - timeStart)
+        }
+        binding.data = trackInformation
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (binding.state == RecordState.RECORD_START || binding.state == RecordState.RECORD_RESTART) {
+            sharedPreferencesManager.currentSessionId?.let { sId ->
+                trackMapManager.screenShotMap(context, sId)
+                NavigatorUtil.startForegroundService(
+                    context,
+                    RecordLocationService::class.java,
+                    bundleOf(RecordLocationService.RECORD_SESSION_ID to sharedPreferencesManager.currentSessionId)
+                )
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setUpView()
+    }
 
 }

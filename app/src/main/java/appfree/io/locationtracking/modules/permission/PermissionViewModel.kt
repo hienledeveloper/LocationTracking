@@ -1,8 +1,6 @@
 package appfree.io.locationtracking.modules.permission
 
-import android.app.Activity
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import appfree.io.locationtracking.base.BaseViewModel
 

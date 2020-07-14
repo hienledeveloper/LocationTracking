@@ -1,33 +1,22 @@
 package appfree.io.locationtracking.modules.location
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Looper
-import android.util.Log
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.LiveData
-import appfree.io.locationtracking.modules.room.dao.TrackLocationDao
 import appfree.io.locationtracking.modules.sharepreference.SharedPreferencesManager
 import com.google.android.gms.location.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.*
 
 /**
  * Created By Ben on 7/10/20
  */
-class TrackLocationManager(
-    private val dao: TrackLocationDao,
-    private val sharedPreferencesManager: SharedPreferencesManager
-) {
+class TrackLocationManager {
 
     private var mLocationRequest: LocationRequest? = null
     private var mFusedLocationClient: FusedLocationProviderClient? = null
-    var lastLocationListener: ((TrackLocation) -> Unit)? = null
+    var lastLocationListener: ((Location) -> Unit)? = null
 
     init {
         mLocationRequest = LocationRequest.create()
@@ -67,15 +56,7 @@ class TrackLocationManager(
         override fun onLocationResult(locationResult: LocationResult?) {
             super.onLocationResult(locationResult)
             locationResult?.lastLocation?.let { location ->
-                val trackLocation = TrackLocation(
-                    latitude = location.latitude,
-                    longitude = location.longitude,
-                    sessionId = sharedPreferencesManager.currentSessionId
-                )
-                lastLocationListener?.invoke(trackLocation)
-                GlobalScope.launch {
-                    saveTrackLocation(trackLocation)
-                }
+                lastLocationListener?.invoke(location)
             }
         }
 
@@ -87,18 +68,5 @@ class TrackLocationManager(
     fun removeLocationUpdates() {
         mFusedLocationClient?.removeLocationUpdates(locationCallback)
     }
-
-    suspend fun saveTrackLocation(trackLocation: TrackLocation) {
-        withContext(Dispatchers.IO) {
-            if (!trackLocation.sessionId.isNullOrEmpty()) {
-                dao.insert(trackLocation)
-            }
-        }
-    }
-
-    fun getAllTrackLocations(): LiveData<List<TrackLocation>> = dao.getAll()
-
-    fun getAllTrackLocationsByCurrentSession(): LiveData<List<TrackLocation>> =
-        dao.getAllBySessionId(sharedPreferencesManager.currentSessionId)
 
 }
