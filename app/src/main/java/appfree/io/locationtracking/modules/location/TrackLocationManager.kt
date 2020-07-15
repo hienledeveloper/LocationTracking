@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
 import androidx.core.app.ActivityCompat
-import appfree.io.locationtracking.modules.sharepreference.SharedPreferencesManager
 import com.google.android.gms.location.*
 
 /**

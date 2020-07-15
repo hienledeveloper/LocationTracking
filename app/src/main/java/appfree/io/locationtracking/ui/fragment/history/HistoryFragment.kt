@@ -31,12 +31,17 @@ class HistoryFragment : BaseFragment<FragmentHistoryBinding>() {
             setHasFixedSize(true)
             adapter = recordAdapter
         }
+
+        // observe to fetch sessions
         historyViewModel.sessionObserves.observe(viewLifecycleOwner, Observer { list ->
             recordAdapter.listSessions.clear()
             recordAdapter.listSessions.addAll(list)
             recordAdapter.notifyDataSetChanged()
+            binding.rclSession.scrollTo(0,0)
         })
         historyViewModel.getAll()
+
+
         binding.btnRecord.setOnClickListener {
             mainViewModel.notifyNavigation.postValue(DestinationEvent.RECORD)
         }

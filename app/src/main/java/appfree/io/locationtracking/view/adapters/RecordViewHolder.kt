@@ -14,7 +14,7 @@ class RecordViewHolder(val binding: ViewHolerRecordBinding): RecyclerView.ViewHo
 
     fun bind(trackSession: TrackSession) {
         binding.data = TrackInformation(trackSession.distance, trackSession.duration)
-        File(itemView.context?.externalCacheDir, "${trackSession.uid}.png").let { file ->
+        File(itemView.context?.filesDir, "${trackSession.uid}.png").let { file ->
             if (file.exists()) {
                 BitmapFactory.decodeFile(file.absolutePath).let { bitmap ->
                     binding.image.setImageBitmap(bitmap)

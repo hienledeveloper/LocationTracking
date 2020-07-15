@@ -10,6 +10,5 @@ import appfree.io.locationtracking.data.local.DestinationEvent
 class MainViewModel: BaseViewModel() {
 
     val notifyNavigation = MutableLiveData<DestinationEvent>()
-    val notifyBackPressed = MutableLiveData<String>()
 
 }

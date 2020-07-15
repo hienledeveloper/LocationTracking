@@ -11,6 +11,9 @@ import androidx.core.app.ActivityCompat
  */
 class PermissionManager {
 
+    /**
+     * check permission state base on PermissionRequest
+     * */
     fun checkPermissionHasGranted(context: Context?, request: PermissionRequest): Boolean {
         var isPermissionGranted = false
         if (context!=null) {
@@ -27,6 +30,9 @@ class PermissionManager {
         return isPermissionGranted
     }
 
+    /**
+     * request permission with device
+     * */
     fun requestPermission(activity: Activity?, request: PermissionRequest) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             activity?.requestPermissions(
@@ -36,6 +42,9 @@ class PermissionManager {
         }
     }
 
+    /**
+     * parser result after use accept or not for permission
+     * */
     fun onRequestPermissionsResult(
         requestCode: Int,
         grantResults: IntArray,

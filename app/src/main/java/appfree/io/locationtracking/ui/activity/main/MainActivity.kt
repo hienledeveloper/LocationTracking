@@ -13,7 +13,6 @@ import appfree.io.locationtracking.ui.fragment.history.HistoryFragment
 import appfree.io.locationtracking.ui.fragment.record.RecordFragment
 import appfree.io.locationtracking.utils.ServiceUtil
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.ext.getScopeName
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -21,7 +20,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // init first screen
         replaceFragment(binding.fragmentContainer.id, HistoryFragment())
+
+        // notify when user change screens
         viewModel.notifyNavigation.observe(this, Observer { event ->
             when (event) {
                 DestinationEvent.RECORD -> {
@@ -47,6 +50,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onResume() {
         super.onResume()
         supportFragmentManager.addOnBackStackChangedListener(fragmentManagerListener)
+
+        // check state service tracking
         if (ServiceUtil.hasServiceRunning(applicationContext, RecordLocationService::class.java)) {
             supportFragmentManager.findFragmentById(binding.fragmentContainer.id)?.let { fragment ->
                 if (fragment !is RecordFragment) {
@@ -55,18 +60,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
     }
-
-    override fun onBackPressed() {
-        if (supportFragmentManager.fragments.size > 1) {
-            super.onBackPressed()
-        } else {
-            supportFragmentManager.findFragmentById(binding.fragmentContainer.id)?.let { fragment ->
-                viewModel.notifyBackPressed.postValue(fragment::class.simpleName)
-            }
-        }
-    }
-
-
 
     override fun getLayoutResourceId(): Int = R.layout.activity_main
 

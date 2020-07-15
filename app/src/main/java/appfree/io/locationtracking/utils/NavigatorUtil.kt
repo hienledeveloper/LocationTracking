@@ -10,7 +10,7 @@ import android.os.Bundle
  */
 object NavigatorUtil {
 
-    fun <T> startForegroundService(context: Context?, clazz: Class<T>, bundle: Bundle?) {
+    fun <T> startForegroundService(context: Context?, clazz: Class<T>, bundle: Bundle? = null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context?.startForegroundService(
                 Intent(

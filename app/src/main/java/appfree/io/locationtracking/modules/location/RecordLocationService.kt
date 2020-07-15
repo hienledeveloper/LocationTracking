@@ -6,10 +6,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
 import appfree.io.locationtracking.R
-import appfree.io.locationtracking.data.local.TrackSession
 import appfree.io.locationtracking.modules.room.dao.TrackLocationDao
-import appfree.io.locationtracking.modules.room.dao.TrackSessionDao
-import appfree.io.locationtracking.modules.sharepreference.SharedPreferencesManager
 import appfree.io.locationtracking.ui.activity.main.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -74,7 +71,7 @@ class RecordLocationService : Service() {
             NotificationChannel(
                 RECORD_NOTIFICATION_CHANNEL_ID,
                 "Tracking Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             )
         getSystemService(NotificationManager::class.java).apply {
             this?.createNotificationChannel(channel)
@@ -85,12 +82,13 @@ class RecordLocationService : Service() {
             }
 
         return Notification.Builder(this, RECORD_NOTIFICATION_CHANNEL_ID)
-            .setContentTitle(getText(R.string.notification_title))
-            .setContentText(getText(R.string.notification_message))
+            .setContentTitle(getText(R.string.app_name))
+            .setContentText("App is running in background")
             .setSmallIcon(android.R.drawable.ic_menu_directions)
             .setContentIntent(pendingIntent)
             .setWhen(System.currentTimeMillis())
             .setAutoCancel(false)
+            .setOngoing(true)
             .setTicker(getText(R.string.ticker_text))
             .build()
     }
@@ -101,6 +99,7 @@ class RecordLocationService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             stopForeground(true)
         }
+        stopSelf()
         return super.stopService(name)
     }
 }
